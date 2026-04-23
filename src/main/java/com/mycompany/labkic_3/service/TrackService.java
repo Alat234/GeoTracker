@@ -1,6 +1,7 @@
 package com.mycompany.labkic_3.service;
 
 import com.mycompany.labkic_3.dto.CompareResult;
+import com.mycompany.labkic_3.entity.AppUser;
 import com.mycompany.labkic_3.entity.TrackData;
 import com.mycompany.labkic_3.entity.UploadedFile;
 import com.mycompany.labkic_3.exception.InvalidTrackFileException;
@@ -18,10 +19,14 @@ import java.util.List;
 public class TrackService {
     private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
+    private final CurrentUserService currentUserService;
 
-    public TrackService(FileRepository fileRepository, FileStorageService fileStorageService) {
+    public TrackService(FileRepository fileRepository,
+                        FileStorageService fileStorageService,
+                        CurrentUserService currentUserService) {
         this.fileRepository = fileRepository;
         this.fileStorageService = fileStorageService;
+        this.currentUserService = currentUserService;
     }
 
     public void uploadTrack(MultipartFile file) {
@@ -33,13 +38,17 @@ public class TrackService {
     }
 
     public List<UploadedFile> getAllFiles() {
-        return fileRepository.findAll();
+        AppUser currentUser = currentUserService.getCurrentUser();
+        return fileRepository.findByOwnerId(currentUser.getId());
     }
 
     public void saveTrackData(String filename) {
         try {
+            AppUser currentUser = currentUserService.getCurrentUser();
+
             UploadedFile uploadedFile = new UploadedFile();
             uploadedFile.setFileName(filename);
+            uploadedFile.setOwner(currentUser);
 
             List<TrackData> data = TrackParser.parseFile(filename);
             uploadedFile.setTrackCoordinatesJson(Converter.convertTrackDataToJson(data));
@@ -59,7 +68,12 @@ public class TrackService {
         if (selectedIds == null || selectedIds.isEmpty()) {
             return;
         }
-        fileRepository.deleteAllById(selectedIds);
+
+        AppUser currentUser = currentUserService.getCurrentUser();
+        List<UploadedFile> ownedSelectedFiles = fileRepository.findByIdInAndOwnerId(selectedIds, currentUser.getId());
+        if (!ownedSelectedFiles.isEmpty()) {
+            fileRepository.deleteAll(ownedSelectedFiles);
+        }
     }
 
     public CompareResult buildInitialResult() {

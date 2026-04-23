@@ -17,6 +17,10 @@ public class UploadedFile {
     @Lob
     private String trackCoordinatesJson;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private AppUser owner;
+
     @OneToMany(mappedBy = "uploadedFile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TrackData> trackDataList = new ArrayList<>();
 
@@ -53,6 +57,15 @@ public class UploadedFile {
 
     public String getTrackCoordinatesJson() {
         return trackCoordinatesJson;
+    }
+
+    @JsonIgnore
+    public AppUser getOwner() {
+        return owner;
+    }
+
+    public void setOwner(AppUser owner) {
+        this.owner = owner;
     }
 
     @JsonIgnore
