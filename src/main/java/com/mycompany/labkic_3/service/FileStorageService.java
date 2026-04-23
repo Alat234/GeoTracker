@@ -30,7 +30,7 @@ public class FileStorageService {
         String filename = StringUtils.cleanPath(file.getOriginalFilename());
         try {
             if (file.isEmpty()) {
-                throw new TrackStorageException("Cannot store empty file", null);
+                throw new TrackStorageException("Cannot store empty file");
             }
             try (InputStream saveStream = file.getInputStream()) {
                 Files.copy(saveStream, rootLocation.resolve(filename), StandardCopyOption.REPLACE_EXISTING);

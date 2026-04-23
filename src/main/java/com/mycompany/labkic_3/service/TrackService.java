@@ -11,6 +11,7 @@ import com.mycompany.labkic_3.util.Converter;
 import com.mycompany.labkic_3.util.TrackParser;
 import com.mycompany.labkic_3.util.TrackValidator;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -30,10 +31,12 @@ public class TrackService {
     }
 
     public void uploadTrack(MultipartFile file) {
-        String filename = fileStorageService.store(file);
+        String filename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
         if (TrackValidator.formatCheck(filename) == null) {
             throw new InvalidTrackFileException("Valid formats are .kml and .gpx: " + filename);
         }
+
+        fileStorageService.store(file);
         saveTrackData(filename);
     }
 
