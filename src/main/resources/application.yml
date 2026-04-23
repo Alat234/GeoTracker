@@ -1,18 +1,14 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:geotracker}
-    username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.h2.Driver}
+    url: jdbc:mariadb://localhost:3306/tracker
+    username: root
+    password: root
+  sql:
+    init:
+      mode: always
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: create
     properties:
       hibernate:
-        dialect: ${SPRING_JPA_DIALECT:org.hibernate.dialect.H2Dialect}
-  thymeleaf:
-    cache: false
-
-storage:
-  location: upload-dir
+        dialect: org.hibernate.dialect.MariaDBDialect

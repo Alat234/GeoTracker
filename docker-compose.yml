@@ -1,30 +1,16 @@
 
 services:
-  spring-app:
-    build: .
-    image: track-helper
-    volumes:
-      - files:/app/upload-dir
+  maria-db:
+    image: mariadb
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/maria-db
-      - SPRING_DATASOURCE_USERNAME=alat31
-      - SPRING_DATASOURCE_PASSWORD=1234
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-  db:
-    image: mariadb:10.6
-    restart: unless-stopped
-    environment:
-      MARIADB_DATABASE: maria-db
-      MARIADB_USER: alat31
-      MARIADB_PASSWORD: 1234
+      MARIADB_DATABASE: tracker
+      MARIADB_USER: root
+      MARIADB_PASSWORD: root
       MARIADB_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
     volumes:
-      - dbstore:/var/lib/mysql
-      - ./src:/app/src
+      - db-store:/var/lib/mysql
 
 volumes:
-  dbstore:
-  files:
+  db-store:
