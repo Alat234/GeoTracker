@@ -17,8 +17,11 @@
     <div th:replace="~{fragments/sidebar :: sidebar(result=${result})}"></div>
 
     <main class="map-container">
-        <div th:replace="~{fragments/result-card :: resultCard(result=${result})}"></div>
+        <div th:if="${successMessage}" class="success-banner" th:text="${successMessage}"></div>
+        <div th:if="${infoMessage}" class="info-banner" th:text="${infoMessage}"></div>
         <div th:if="${errorMessage}" class="error-banner" th:text="${errorMessage}"></div>
+
+        <div th:replace="~{fragments/result-card :: resultCard(result=${result})}"></div>
         <div th:replace="~{fragments/map-panel :: mapPanel}"></div>
     </main>
 </div>
@@ -50,6 +53,16 @@
                         direction: 'center',
                         className: 'track-label'
                     }).addTo(map);
+
+                    const start = coordinates[0];
+                    const finish = coordinates[coordinates.length - 1];
+
+                    L.circleMarker(start, {radius: 6, color: trackColor, fillOpacity: 1})
+                        .bindPopup(track.fileName + ' - Start')
+                        .addTo(map);
+                    L.circleMarker(finish, {radius: 6, color: trackColor, fillColor: '#fff', fillOpacity: 1})
+                        .bindPopup(track.fileName + ' - Finish')
+                        .addTo(map);
 
                     drawnFeatures.push(polyline);
                 }

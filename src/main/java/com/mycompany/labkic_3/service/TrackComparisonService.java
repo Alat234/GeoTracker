@@ -13,28 +13,36 @@ import java.util.*;
 public class TrackComparisonService {
     private final FileRepository fileRepository;
     private final CurrentUserService currentUserService;
+    private final TrackDashboardService trackDashboardService;
+    private final TrackStatisticsService trackStatisticsService;
 
-    public TrackComparisonService(FileRepository fileRepository, CurrentUserService currentUserService) {
+    public TrackComparisonService(FileRepository fileRepository,
+                                  CurrentUserService currentUserService,
+                                  TrackDashboardService trackDashboardService,
+                                  TrackStatisticsService trackStatisticsService) {
         this.fileRepository = fileRepository;
         this.currentUserService = currentUserService;
+        this.trackDashboardService = trackDashboardService;
+        this.trackStatisticsService = trackStatisticsService;
     }
 
-    public CompareResult compareTracks(List<Long> fileIds, int step, String mode) {
-        if (fileIds == null || fileIds.isEmpty()) {
-            throw new TrackComparisonException("Select at least one track");
-        }
-
+    public CompareResult compareTracks(List<Long> fileIds, int step, String mode, String search, String sortBy) {
         AppUser currentUser = currentUserService.getCurrentUser();
         Long ownerId = currentUser.getId();
 
-        List<UploadedFile> ownedSelectedFiles = fileRepository.findByIdInAndOwnerId(fileIds, ownerId);
+        CompareResult result = new CompareResult();
+        result.setCurrentMode(mode);
+        result.setSimilarityStep(step);
+
+        List<UploadedFile> ownedSelectedFiles = fileIds == null ? List.of() : fileRepository.findByIdInAndOwnerId(fileIds, ownerId);
         List<Long> visibleFileIds = ownedSelectedFiles.stream().map(UploadedFile::getId).toList();
 
         if (visibleFileIds.isEmpty()) {
-            throw new TrackComparisonException("Select at least one track");
+            trackDashboardService.enrichResult(result, search, sortBy);
+            result.setInfoMessage("No tracks selected");
+            return result;
         }
 
-        CompareResult result = new CompareResult();
         if (Objects.equals(mode, "compare")) {
             if (visibleFileIds.size() == 1) {
                 result = compareOneFileWithOther(visibleFileIds.get(0), step, ownerId);
@@ -43,14 +51,19 @@ public class TrackComparisonService {
             } else {
                 result = prepareFilesToShow(visibleFileIds, ownerId);
             }
+            result.setInfoMessage("Track comparison completed");
         } else if (Objects.equals(mode, "view")) {
             result = prepareFilesToShow(visibleFileIds, ownerId);
+            result.setInfoMessage("Track view updated");
+        } else {
+            throw new TrackComparisonException("Unsupported mode");
         }
 
         result.setHighlightedIds(visibleFileIds);
-        result.setTrackListForHtml(fileRepository.findByOwnerId(ownerId));
         result.setCurrentMode(mode);
         result.setSimilarityStep(step);
+        result.setSelectedTrackStats(ownedSelectedFiles.stream().map(trackStatisticsService::calculateStats).toList());
+        trackDashboardService.enrichResult(result, search, sortBy);
         return result;
     }
 
@@ -86,16 +99,19 @@ public class TrackComparisonService {
     private CompareResult compareTwoFiles(List<Long> fileIds, int step, Long ownerId) {
         CompareResult compareResult = new CompareResult();
 
-        List<String> temp = fileRepository.findUniqueGeohashesByStepAndOwnerId(fileIds.get(0), step, ownerId);
-        Set<String> coordinateTrackToCompare = new HashSet<>(temp);
+        Set<String> coordinateTrackToCompare = new HashSet<>(fileRepository.findUniqueGeohashesByStepAndOwnerId(fileIds.get(0), step, ownerId));
         Set<String> intersection = new HashSet<>(coordinateTrackToCompare);
         Set<String> union = new HashSet<>(coordinateTrackToCompare);
 
-        union.addAll(fileRepository.findUniqueGeohashesByStepAndOwnerId(fileIds.get(1), step, ownerId));
-        intersection.retainAll(fileRepository.findUniqueGeohashesByStepAndOwnerId(fileIds.get(1), step, ownerId));
+        Set<String> secondTrack = new HashSet<>(fileRepository.findUniqueGeohashesByStepAndOwnerId(fileIds.get(1), step, ownerId));
+        union.addAll(secondTrack);
+        intersection.retainAll(secondTrack);
 
         double result = union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
         compareResult.setPairSimilarityPercentage(result * 100);
+        compareResult.setSharedGeohashCount(intersection.size());
+        compareResult.setUnionGeohashCount(union.size());
+        compareResult.setSimilarityLabel(buildSimilarityLabel(result * 100));
 
         List<String> names = new ArrayList<>();
         for (UploadedFile file : fileRepository.findByOwnerId(ownerId)) {
@@ -116,5 +132,15 @@ public class TrackComparisonService {
             fileRepository.findByIdAndOwnerId(id, ownerId).ifPresent(fileToDraw::add);
         }
         return new CompareResult(fileToDraw, fileToDraw);
+    }
+
+    private String buildSimilarityLabel(double similarityPercentage) {
+        if (similarityPercentage >= 70) {
+            return "High similarity";
+        }
+        if (similarityPercentage >= 35) {
+            return "Medium similarity";
+        }
+        return "Low similarity";
     }
 }

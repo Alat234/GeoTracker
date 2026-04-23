@@ -1,6 +1,5 @@
 package com.mycompany.labkic_3.service;
 
-import com.mycompany.labkic_3.dto.CompareResult;
 import com.mycompany.labkic_3.entity.AppUser;
 import com.mycompany.labkic_3.entity.TrackData;
 import com.mycompany.labkic_3.entity.UploadedFile;
@@ -33,16 +32,11 @@ public class TrackService {
     public void uploadTrack(MultipartFile file) {
         String filename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
         if (TrackValidator.formatCheck(filename) == null) {
-            throw new InvalidTrackFileException("Valid formats are .kml and .gpx: " + filename);
+            throw new InvalidTrackFileException("Unsupported file format. Use .kml or .gpx");
         }
 
         fileStorageService.store(file);
         saveTrackData(filename);
-    }
-
-    public List<UploadedFile> getAllFiles() {
-        AppUser currentUser = currentUserService.getCurrentUser();
-        return fileRepository.findByOwnerId(currentUser.getId());
     }
 
     public void saveTrackData(String filename) {
@@ -67,9 +61,9 @@ public class TrackService {
         }
     }
 
-    public void deleteSelected(List<Long> selectedIds) {
+    public int deleteSelected(List<Long> selectedIds) {
         if (selectedIds == null || selectedIds.isEmpty()) {
-            return;
+            return 0;
         }
 
         AppUser currentUser = currentUserService.getCurrentUser();
@@ -77,13 +71,6 @@ public class TrackService {
         if (!ownedSelectedFiles.isEmpty()) {
             fileRepository.deleteAll(ownedSelectedFiles);
         }
-    }
-
-    public CompareResult buildInitialResult() {
-        CompareResult result = new CompareResult();
-        result.setTrackListForHtml(getAllFiles());
-        result.setSimilarityStep(5);
-        result.setCurrentMode("compare");
-        return result;
+        return ownedSelectedFiles.size();
     }
 }

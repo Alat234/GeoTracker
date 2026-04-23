@@ -2,12 +2,31 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
 <section th:fragment="resultCard(result)">
+    <div th:if="${result.infoMessage}" class="info-banner" th:text="${result.infoMessage}"></div>
+
     <div th:if="${result.pairSimilarityPercentage != null}" class="result-box">
         <h3>Track comparison</h3>
         <p th:if="${!result.comparedFileNames.isEmpty()}"
            th:text="${result.comparedFileNames[0]} + ' and ' + ${result.comparedFileNames[1]}"></p>
         <p>Step: <span th:text="${result.similarityStep}"></span></p>
         <p>Similarity: <strong th:text="${#numbers.formatDecimal(result.pairSimilarityPercentage, 1, 1)} + '%'"></strong></p>
+        <p th:if="${result.similarityLabel != null}">Level: <strong th:text="${result.similarityLabel}"></strong></p>
+        <p th:if="${result.sharedGeohashCount != null}">
+            Shared segments: <strong th:text="${result.sharedGeohashCount}"></strong>,
+            Total unique segments: <strong th:text="${result.unionGeohashCount}"></strong>
+        </p>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(result.selectedTrackStats)}" class="stats-grid">
+        <article class="stats-card" th:each="stats : ${result.selectedTrackStats}">
+            <h4 th:text="${stats.fileName}">track.gpx</h4>
+            <p>Points: <strong th:text="${stats.totalPoints}"></strong></p>
+            <p>Start: <span th:text="${#numbers.formatDecimal(stats.startLatitude,1,5)}"></span>, <span th:text="${#numbers.formatDecimal(stats.startLongitude,1,5)}"></span></p>
+            <p>Finish: <span th:text="${#numbers.formatDecimal(stats.endLatitude,1,5)}"></span>, <span th:text="${#numbers.formatDecimal(stats.endLongitude,1,5)}"></span></p>
+            <p>Bounds: lat <span th:text="${#numbers.formatDecimal(stats.minLatitude,1,5)}"></span> .. <span th:text="${#numbers.formatDecimal(stats.maxLatitude,1,5)}"></span></p>
+            <p>Bounds: lon <span th:text="${#numbers.formatDecimal(stats.minLongitude,1,5)}"></span> .. <span th:text="${#numbers.formatDecimal(stats.maxLongitude,1,5)}"></span></p>
+            <p>Approx distance: <strong th:text="${#numbers.formatDecimal(stats.approximateDistanceKm,1,2)} + ' km'"></strong></p>
+        </article>
     </div>
 </section>
 </body>

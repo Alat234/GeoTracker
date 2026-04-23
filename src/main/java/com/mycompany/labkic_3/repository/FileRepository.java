@@ -18,6 +18,11 @@ public interface FileRepository extends JpaRepository<UploadedFile, Long> {
 
     Optional<UploadedFile> findByIdAndOwnerId(Long id, Long ownerId);
 
+    List<UploadedFile> findTop5ByOwnerIdOrderByUploadedAtDesc(Long ownerId);
+
+    @Query("SELECT uf FROM UploadedFile uf WHERE uf.owner.id=:ownerId AND (:search='' OR lower(uf.fileName) LIKE lower(concat('%', :search, '%')))")
+    List<UploadedFile> findByOwnerAndSearch(@Param("ownerId") Long ownerId, @Param("search") String search);
+
     @Query("SELECT DISTINCT substring(td.geohash,1,:step) from TrackData td where td.uploadedFile.id=:id and td.uploadedFile.owner.id=:ownerId")
     List<String> findUniqueGeohashesByStepAndOwnerId(@Param("id") Long id, @Param("step") int step, @Param("ownerId") Long ownerId);
 

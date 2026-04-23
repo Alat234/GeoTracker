@@ -8,13 +8,29 @@
         <button type="submit">Upload</button>
     </form>
 
+    <form th:action="@{/}" method="get" class="card compact-card">
+        <h3>Search and sort</h3>
+        <input type="text" name="search" placeholder="Search by filename" th:value="${result.searchQuery}">
+        <select name="sort">
+            <option value="newest" th:selected="${result.sortBy == 'newest'}">Newest first</option>
+            <option value="oldest" th:selected="${result.sortBy == 'oldest'}">Oldest first</option>
+            <option value="name_asc" th:selected="${result.sortBy == 'name_asc'}">Filename A-Z</option>
+            <option value="name_desc" th:selected="${result.sortBy == 'name_desc'}">Filename Z-A</option>
+        </select>
+        <button type="submit">Apply</button>
+    </form>
+
     <form th:action="@{/process}" method="post" class="card">
         <h2>Tracks</h2>
+        <input type="hidden" name="search" th:value="${result.searchQuery}">
+        <input type="hidden" name="sort" th:value="${result.sortBy}">
+
         <div class="file-list-container">
             <ul>
                 <li th:each="track : ${result.trackListForHtml}">
                     <input type="checkbox" name="selectedIds" th:value="${track.id}" th:checked="${result.highlightedIds.contains(track.id)}">
                     <span th:text="${track.fileName}">Track file</span>
+                    <small class="upload-meta" th:if="${track.uploadedAt != null}" th:text="${#temporals.format(track.uploadedAt, 'yyyy-MM-dd HH:mm')}"></small>
                     <span th:if="${result.similarityOfTrack != null && result.similarityOfTrack.containsKey(track.id)}" class="similarity-tag"
                           th:text="'Similarity: ' + ${#numbers.formatDecimal(result.similarityOfTrack.get(track.id), 1, 1)} + '%'">Similarity</span>
                 </li>
@@ -38,6 +54,20 @@
             <button type="submit" class="danger" th:formaction="@{/delete}">Delete selected</button>
         </div>
     </form>
+
+    <section class="card compact-card">
+        <h3>Recent uploads</h3>
+        <ul class="recent-list">
+            <li th:if="${#lists.isEmpty(result.recentTracks)}">No uploads yet</li>
+            <li th:each="recent : ${result.recentTracks}">
+                <div>
+                    <strong th:text="${recent.fileName}">file.gpx</strong>
+                    <small th:text="${#temporals.format(recent.uploadedAt, 'yyyy-MM-dd HH:mm')}"></small>
+                </div>
+                <span th:text="${recent.totalPoints} + ' pts'">0 pts</span>
+            </li>
+        </ul>
+    </section>
 </aside>
 </body>
 </html>
