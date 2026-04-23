@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside class="sidebar" th:fragment="sidebar(result)">
+    <form th:action="@{/upload}" method="post" enctype="multipart/form-data" class="card">
+        <h2>Upload track</h2>
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <section class="card tracks-card">
+        <h2>Tracks</h2>
+
+        <form th:action="@{/}" method="get" class="track-filters">
+            <input type="text" name="search" placeholder="Search by filename" th:value="${result.searchQuery}">
+            <select name="sort">
+                <option value="newest" th:selected="${result.sortBy == 'newest'}">Newest first</option>
+                <option value="oldest" th:selected="${result.sortBy == 'oldest'}">Oldest first</option>
+                <option value="name_asc" th:selected="${result.sortBy == 'name_asc'}">Filename A-Z</option>
+                <option value="name_desc" th:selected="${result.sortBy == 'name_desc'}">Filename Z-A</option>
+            </select>
+            <button type="submit" class="secondary-btn">Apply</button>
+        </form>
+
+        <form th:action="@{/process}" method="post" class="tracks-workflow-form">
+            <input type="hidden" name="search" th:value="${result.searchQuery}">
+            <input type="hidden" name="sort" th:value="${result.sortBy}">
+
+            <div class="file-list-container">
+                <ul>
+                    <li th:each="track : ${result.trackListForHtml}">
+                        <input type="checkbox" name="selectedIds" th:value="${track.id}" th:checked="${result.highlightedIds.contains(track.id)}">
+                        <span th:text="${track.fileName}">Track file</span>
+                        <small class="upload-meta" th:if="${track.uploadedAt != null}" th:text="${#temporals.format(track.uploadedAt, 'yyyy-MM-dd HH:mm')}"></small>
+                        <span th:if="${result.similarityOfTrack != null && result.similarityOfTrack.containsKey(track.id)}" class="similarity-tag"
+                              th:text="'Similarity: ' + ${#numbers.formatDecimal(result.similarityOfTrack.get(track.id), 1, 1)} + '%'">Similarity</span>
+                    </li>
+                </ul>
+            </div>
+
+            <label for="mode-select">Mode</label>
+            <select name="mode" id="mode-select">
+                <option value="compare" th:selected="${result.currentMode == 'compare'}">Compare</option>
+                <option value="view" th:selected="${result.currentMode == 'view'}">View</option>
+            </select>
+
+            <label for="similarity-slider">Similarity step</label>
+            <div class="slider-row">
+                <input type="range" id="similarity-slider" name="similarityLevel" min="1" max="30" th:value="${result.similarityStep}" oninput="sliderValue.value = this.value">
+                <output id="sliderValue" for="similarity-slider" th:text="${result.similarityStep}">5</output>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Run</button>
+                <button type="submit" class="danger" th:formaction="@{/delete}">Delete selected</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card compact-card">
+        <h3>Recent uploads</h3>
+        <ul class="recent-list">
+            <li th:if="${#lists.isEmpty(result.recentTracks)}">No uploads yet</li>
+            <li th:each="recent : ${result.recentTracks}">
+                <div>
+                    <strong th:text="${recent.fileName}">file.gpx</strong>
+                    <small th:text="${#temporals.format(recent.uploadedAt, 'yyyy-MM-dd HH:mm')}"></small>
+                </div>
+                <span th:text="${recent.totalPoints} + ' pts'">0 pts</span>
+            </li>
+        </ul>
+    </section>
+</aside>
+</body>
+</html>

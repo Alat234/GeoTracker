@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>GeoTracker Registration</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+<div class="auth-shell">
+    <form class="auth-card" th:action="@{/registration}" th:object="${registrationRequest}" method="post">
+        <h1>Create account</h1>
+        <p class="subtitle">Start tracking routes in seconds</p>
+
+        <label>Username</label>
+        <input type="text" th:field="*{username}" required>
+        <small th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="error"></small>
+
+        <label>Password</label>
+        <input type="password" th:field="*{password}" required>
+        <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error"></small>
+
+        <button type="submit">Register</button>
+        <a th:href="@{/login}">Back to login</a>
+    </form>
+</div>
+</body>
+</html>
