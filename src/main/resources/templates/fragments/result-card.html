@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="resultCard(result)">
+    <div th:if="${result.pairSimilarityPercentage != null}" class="result-box">
+        <h3>Track comparison</h3>
+        <p th:if="${!result.comparedFileNames.isEmpty()}"
+           th:text="${result.comparedFileNames[0]} + ' and ' + ${result.comparedFileNames[1]}"></p>
+        <p>Step: <span th:text="${result.similarityStep}"></span></p>
+        <p>Similarity: <strong th:text="${#numbers.formatDecimal(result.pairSimilarityPercentage, 1, 1)} + '%'"></strong></p>
+    </div>
+</section>
+</body>
+</html>

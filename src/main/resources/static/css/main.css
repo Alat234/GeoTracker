@@ -1,0 +1,22 @@
+body { font-family: "Segoe UI", sans-serif; margin: 0; background: #f5f7fb; color: #223; }
+.dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: #fff; border-bottom: 1px solid #e6ebf2; }
+.user-pill { background: #eef4ff; padding: .45rem .8rem; border-radius: 16px; font-size: .9rem; }
+.main-container { display: grid; grid-template-columns: 340px 1fr; gap: 1rem; padding: 1rem; }
+.sidebar { display: flex; flex-direction: column; gap: 1rem; }
+.card { background: #fff; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 8px rgba(16,34,68,.06); }
+.file-list-container { max-height: 300px; overflow-y: auto; border: 1px solid #e3e8ef; border-radius: 8px; padding: .5rem; margin-bottom: 1rem; }
+.file-list-container ul { list-style: none; margin: 0; padding: 0; }
+.file-list-container li { display: flex; align-items: center; gap: .5rem; padding: .5rem; border-bottom: 1px solid #edf1f7; }
+.file-list-container li:last-child { border-bottom: none; }
+.similarity-tag { margin-left: auto; color: #116c3f; font-size: .85rem; font-weight: 600; }
+label { display: block; margin: .5rem 0 .3rem; font-weight: 600; }
+input, select, button { width: 100%; box-sizing: border-box; padding: .6rem; border-radius: 8px; border: 1px solid #ced7e4; }
+button { background: #2668ff; color: #fff; border: 0; cursor: pointer; }
+button.danger { background: #d9414f; }
+.button-group { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .8rem; }
+.slider-row { display: grid; grid-template-columns: 1fr 48px; gap: .5rem; align-items: center; }
+.result-box { background: #eaf9ef; border: 1px solid #caefd6; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; }
+.error-banner { background: #fdeaea; color: #972b2b; padding: .8rem; border-radius: 8px; margin-bottom: .8rem; }
+.map-card { height: calc(100vh - 190px); }
+#map { width: 100%; height: calc(100% - 42px); border-radius: 10px; border: 1px solid #e0e7f0; }
+.leaflet-tooltip.track-label { background: rgba(255,255,255,.85); border: none; box-shadow: 0 1px 4px rgba(0,0,0,.2); }

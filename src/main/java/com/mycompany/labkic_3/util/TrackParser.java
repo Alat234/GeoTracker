@@ -1,6 +1,6 @@
-package com.mycompany.labkic_3.ExtraUtilities;
+package com.mycompany.labkic_3.util;
 
-import com.mycompany.labkic_3.Model.TrackData;
+import com.mycompany.labkic_3.entity.TrackData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -20,14 +20,14 @@ public class TrackParser {
     public static final String DATA_DIRECTORY = "upload-dir";
     private static final Logger LOGGER = Logger.getLogger(TrackParser.class.getName());
 
-    public static List<TrackData> ParseFile(String filename) {
+    public static List<TrackData> parseFile(String filename) {
         try {
-            if (TrackValidator.FormatCheck(filename) == null) {
+            if (TrackValidator.formatCheck(filename) == null) {
                 throw new RuntimeException("Invalid file format of file: " + filename);
-            } else if (TrackValidator.FormatCheck(filename).equals(".kml")) {
-                return ParseKml(filename);
-            } else if (TrackValidator.FormatCheck(filename).equals(".gpx")) {
-                return ParseGpx(filename);
+            } else if (TrackValidator.formatCheck(filename).equals(".kml")) {
+                return parseKml(filename);
+            } else if (TrackValidator.formatCheck(filename).equals(".gpx")) {
+                return parseGpx(filename);
             } else {
                 throw new RuntimeException("Format file error: " + filename);
             }
@@ -37,7 +37,7 @@ public class TrackParser {
         }
     }
 
-    public static List<TrackData> ParseKml(String filename) {
+    public static List<TrackData> parseKml(String filename) {
         List<TrackData> trackDataList = new ArrayList<>();
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -46,30 +46,22 @@ public class TrackParser {
             Document doc = builder.parse(new File(getFilePath(filename)));
             doc.getDocumentElement().normalize();
 
-
             NodeList pointNodes = doc.getElementsByTagName("Point");
 
             for (int i = 0; i < pointNodes.getLength(); i++) {
                 Node node = pointNodes.item(i);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
                     Element pointElement = (Element) node;
-
-
                     NodeList coordinateNodes = pointElement.getElementsByTagName("coordinates");
 
                     if (coordinateNodes.getLength() > 0) {
-
                         String coordinatesText = coordinateNodes.item(0).getTextContent().trim();
-
-
                         String[] coords = coordinatesText.split(",");
 
                         if (coords.length >= 2) {
                             try {
-
                                 double longitude = Double.parseDouble(coords[0].trim());
                                 double latitude = Double.parseDouble(coords[1].trim());
-
                                 trackDataList.add(new TrackData(latitude, longitude));
                             } catch (NumberFormatException e) {
                                 LOGGER.log(Level.WARNING, "Invalid coordinate format in KML: " + coordinatesText, e);
@@ -86,7 +78,7 @@ public class TrackParser {
         return trackDataList;
     }
 
-    public static List<TrackData> ParseGpx(String filename) {
+    public static List<TrackData> parseGpx(String filename) {
         List<TrackData> trackDataList = new ArrayList<>();
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -103,7 +95,6 @@ public class TrackParser {
                     try {
                         double latitude = Double.parseDouble(element.getAttribute("lat"));
                         double longitude = Double.parseDouble(element.getAttribute("lon"));
-
                         trackDataList.add(new TrackData(latitude, longitude));
                     } catch (NumberFormatException e) {
                         LOGGER.log(Level.WARNING, "Invalid coordinate or altitude format in GPX at index: " + i, e);
@@ -124,9 +115,8 @@ public class TrackParser {
         try {
             if (file.exists()) {
                 return file.getAbsolutePath();
-            } else {
-                throw new RuntimeException("Not found file on directory: " + file.getAbsolutePath());
             }
+            throw new RuntimeException("Not found file on directory: " + file.getAbsolutePath());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to get path for file " + filename, e);
             throw new RuntimeException("Failed to get path " + filename, e);

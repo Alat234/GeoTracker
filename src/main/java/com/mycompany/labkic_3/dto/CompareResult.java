@@ -1,4 +1,6 @@
-package com.mycompany.labkic_3.Model;
+package com.mycompany.labkic_3.dto;
+
+import com.mycompany.labkic_3.entity.UploadedFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,10 +8,21 @@ import java.util.Map;
 
 public class CompareResult {
     private List<UploadedFile> trackListForHtml;
-
-
     private List<UploadedFile> tracksToDrawOnMap;
     private List<String> comparedFileNames = new ArrayList<>();
+    private int similarityStep;
+    private Map<Long, Double> similarityOfTrack;
+    private Double pairSimilarityPercentage;
+    private List<Long> highlightedIds = new ArrayList<>();
+    private String currentMode;
+
+    public CompareResult() {
+    }
+
+    public CompareResult(List<UploadedFile> trackListForHtml, List<UploadedFile> tracksToDrawOnMap) {
+        this.trackListForHtml = trackListForHtml;
+        this.tracksToDrawOnMap = tracksToDrawOnMap;
+    }
 
     public void setComparedFileNames(List<String> comparedFileNames) {
         this.comparedFileNames = comparedFileNames;
@@ -19,16 +32,6 @@ public class CompareResult {
         return comparedFileNames;
     }
 
-    public CompareResult(List<UploadedFile> trackListForHtml, List<UploadedFile> tracksToDrawOnMap) {
-        this.trackListForHtml = trackListForHtml;
-        this.tracksToDrawOnMap = tracksToDrawOnMap;
-    }
-
-    public CompareResult(List<UploadedFile> tracksToDrawOnMap) {
-        this.tracksToDrawOnMap = tracksToDrawOnMap;
-    }
-    private int similarityStep;
-
     public void setSimilarityStep(int similarityStep) {
         this.similarityStep = similarityStep;
     }
@@ -37,31 +40,12 @@ public class CompareResult {
         return similarityStep;
     }
 
-    private Map<Long,Double > similarityOfTrack;
-
-    private Double pairSimilarityPercentage;
-
-    private List<Long> highlightedIds = new ArrayList<>();
-    private String CurrentMode;
-
     public void setCurrentMode(String currentMode) {
-        CurrentMode = currentMode;
+        this.currentMode = currentMode;
     }
 
     public String getCurrentMode() {
-        return CurrentMode;
-    }
-
-    public CompareResult() {
-    }
-
-    public CompareResult(List<UploadedFile> trackListForHtml, Map<Long, Double> similarityOfTrack) {
-        this.trackListForHtml = trackListForHtml;
-        this.similarityOfTrack = similarityOfTrack;
-    }
-
-    public CompareResult(Map<Long, Double> similarityOfTrack) {
-        this.similarityOfTrack = similarityOfTrack;
+        return currentMode;
     }
 
     public void setSimilarityOfTrack(Map<Long, Double> similarityOfTrack) {
@@ -90,14 +74,6 @@ public class CompareResult {
 
     public List<UploadedFile> getTracksToDrawOnMap() {
         return tracksToDrawOnMap;
-    }
-
-    public CompareResult(List<UploadedFile> trackListForHtml, List<UploadedFile> tracksToDrawOnMap, Map<Long, Double> similarityOfTrack, Double pairSimilarityPercentage, List<Long> highlightedIds) {
-        this.trackListForHtml = trackListForHtml;
-        this.tracksToDrawOnMap = tracksToDrawOnMap;
-        this.similarityOfTrack = similarityOfTrack;
-        this.pairSimilarityPercentage = pairSimilarityPercentage;
-        this.highlightedIds = highlightedIds;
     }
 
     public Map<Long, Double> getSimilarityOfTrack() {
