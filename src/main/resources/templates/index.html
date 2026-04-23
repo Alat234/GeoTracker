@@ -1,0 +1,363 @@
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Лабораторна №4</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        /* --- Загальні стилі --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        /* --- Макет --- */
+        .main-container {
+            display: flex;
+            flex-wrap: wrap; /* Дозволяє переносити на мобільних */
+            padding: 20px;
+            gap: 20px;
+            flex-grow: 1;
+        }
+
+        .sidebar {
+            flex: 1;
+            min-width: 350px; /* Мінімальна ширина для панелі керування */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .map-container {
+            flex: 2;
+            min-width: 400px;
+            height: 75vh; /* Висота карти */
+            display: flex;
+            flex-direction: column;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%; /* Карта займає весь контейнер */
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* --- Стилізація форм --- */
+        form {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        button,
+        input[type="file"]::file-selector-button {
+            font-size: 1rem;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            font-weight: 500;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        input[type="file"]::file-selector-button {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background-color: #e0e0e0;
+        }
+
+        button[th:formaction="@{/delete}"] {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        button[th:formaction="@{/delete}"]:hover {
+                                              background-color: #a71d2a;
+                                              transform: translateY(-1px);
+                                          }
+
+        /* --- Блок результатів --- */
+        .result-box {
+            background-color: #e0ffe0;
+            border: 1px solid #a8c5a8;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .result-box h3 {
+            margin: 0;
+            color: #215e21;
+        }
+
+        /* --- Список файлів --- */
+        .file-list-container {
+            max-height: 300px; /* Обмеження висоти списку */
+            overflow-y: auto; /* Додавання прокрутки */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+            margin: 15px 0;
+        }
+
+        .file-list-container ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .file-list-container li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .file-list-container li:last-child {
+            border-bottom: none;
+        }
+
+        .file-list-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* --- Елементи керування (слайдер, селект) --- */
+        .controls-group {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 10px 15px;
+            margin-bottom: 20px;
+        }
+
+        .controls-group label {
+            font-weight: 500;
+        }
+
+        select,
+        output,
+        input[type="range"] {
+            width: 100%;
+            box-sizing: border-box; /* Для правильного розрахунку ширини */
+        }
+
+        select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        input[type="range"] {
+            cursor: pointer;
+        }
+
+        /* Стилізація підказки до треку на карті */
+        .leaflet-tooltip.track-label {
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border-radius: 3px;
+            padding: 2px 6px;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>Мої треки (Лабораторна №4)</h1>
+
+<div class="main-container">
+
+    <div class="sidebar">
+
+        <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
+            <h2>Завантажити новий трек:</h2>
+            <input type="file" name="file" required>
+            <button type="submit">Завантажити</button>
+        </form>
+
+        <div th:if="${result.pairSimilarityPercentage != null}" class="result-box">
+            <h3>
+                Порівняння файлів:
+                <span th:if="${!result.comparedFileNames.isEmpty()}"
+                      th:text="${result.comparedFileNames[0]} + ' та ' + ${result.comparedFileNames[1]}"></span>
+                (крок: <span th:text="${result.similarityStep}"></span>)
+            </h3>
+            <h3>
+                Схожість:
+                <span th:text="${#numbers.formatDecimal(result.pairSimilarityPercentage, 1, 1)} + '%'"></span>
+            </h3>
+        </div>
+
+        <form th:action="@{/process}" method="post">
+            <h2>Завантажені файли:</h2>
+
+            <div class="file-list-container">
+                <ul>
+                    <li th:each="track : ${result.trackListForHtml}">
+                        <input type="checkbox" name="selectedIds" th:value="${track.id}"
+                               th:checked="${result.highlightedIds.contains(track.id)}">
+
+                        <span th:text="${track.fileName}">Назва файлу</span>
+
+                        <span th:if="${result.similarityOfTrack != null && result.similarityOfTrack.containsKey(track.id)}"
+                              style="color: green; font-weight: bold; margin-left: auto;">
+                          (Схожість: <b th:text="${#numbers.formatDecimal(result.similarityOfTrack.get(track.id), 1, 1)} + '%'"></b>)
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="controls-group">
+                <label for="mode-select">Режим:</label>
+                <select name="mode" id="mode-select">
+                    <option value="compare" th:selected="${result.currentMode == 'compare'}">Порівняння</option>
+                    <option value="view"    th:selected="${result.currentMode == 'view'}">Перегляд</option>
+                </select>
+
+                <label for="similarity-slider">Рівень схожості (step):</label>
+                <div>
+                    <input type="range" id="similarity-slider" name="similarityLevel" min="1" max="30"
+                           th:value="${result.similarityStep}"
+                           oninput="sliderValue.value = this.value">
+                    <output id="sliderValue" for="similarity-slider"
+                            th:text="${result.similarityStep}">5</output>
+                </div>
+            </div>
+
+            <div class="button-group" style="display: flex; gap: 10px;">
+                <button type="submit">Виконати</button>
+                <button type="submit" th:formaction="@{/delete}">
+                    Видалити всі файли
+                </button>
+            </div>
+        </form>
+
+    </div> <div class="map-container">
+    <h2>Карта</h2>
+    <div id="map"></div>
+</div> </div> <script th:inline="javascript">
+
+    var map = L.map('map').setView([48.3794, 31.1656], 6); // Центр України
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // --- Покращена функція вибору кольору ---
+    // Масив яскравих, чітких кольорів для треків
+    const TRACK_COLORS = [
+        '#E6194B', // Червоний
+        '#3CB44B', // Зелений
+        '#0082C8', // Синій
+        '#F58231', // Помаранчевий
+        '#911EB4', // Фіолетовий
+        '#46F0F0', // Ціан
+        '#FABEBE', // Рожевий
+        '#FFD8B1', // Абрикосовий
+        '#FFE119', // Жовтий
+        '#000075', // Темно-синій
+        '#A9A9A9', // Сірий
+        '#800000'  // Бордовий
+    ];
+
+    /**
+     * Отримує колір з палітри на основі індексу.
+     * @param {number} index - Індекс треку.
+     * @returns {string} - HEX-код кольору.
+     */
+    function getColor(index) {
+        // Використовуємо залишок від ділення, щоб кольори повторювалися,
+        // якщо треків більше, ніж кольорів у палітрі.
+        return TRACK_COLORS[index % TRACK_COLORS.length];
+    }
+    // Видалено невикористану функцію getRandomOffset()
+
+    var tracksToDraw = /*[[${result.tracksToDrawOnMap}]]*/ null;
+    var drawnFeatures = [];
+
+    if (tracksToDraw && tracksToDraw.length > 0) {
+
+        for (var i = 0; i < tracksToDraw.length; i++) {
+            var track = tracksToDraw[i];
+            var jsonString = track.trackCoordinatesJson;
+
+            try {
+                var coordinates = JSON.parse(jsonString);
+                console.log("Малювання треку:", track.fileName, coordinates.length, "точок");
+
+                var trackColor = getColor(i); // Отримуємо колір за індексом
+
+                if (coordinates.length > 0) {
+                    var polyline = L.polyline(coordinates, {
+                        color: trackColor,
+                        weight: 4, // Зробимо лінію трохи товщою
+                        opacity: 0.8 // Трохи прозорості
+                    })
+                        .bindTooltip(
+                            // Динамічно додаємо span зі стилем
+                            '<span style="color:' + trackColor + '; font-weight: bold;">' + track.fileName + '</span>',
+                            {
+                                permanent: true, // Підпис видно завжди
+                                direction: 'center',
+                                className: 'track-label' // Використовуємо CSS для базових стилів
+                            }
+                        )
+                        .addTo(map);
+
+                    drawnFeatures.push(polyline);
+                }
+            } catch (e) {
+                console.error("Не вдалося розпарсити JSON для треку:", track.fileName, e);
+            }
+        }
+    }
+
+    // Автоматично центрувати та масштабувати карту, щоб вмістити всі намальовані треки
+    if (drawnFeatures.length > 0) {
+        var group = L.featureGroup(drawnFeatures);
+        map.fitBounds(group.getBounds().pad(0.1)); // .pad(0.1) додає невеликий відступ
+    }
+</script>
+
+</body>
+</html>

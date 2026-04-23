@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Random KML Example</name>
+    <description>A sample KML file with various features.</description>
+    <!-- Додаємо Style перед open, щоб відповідати схемі -->
+    <Style id="randomStyle">
+      <LineStyle>
+        <color>ff0000ff</color> <!-- Blue color in ABGR format -->
+        <width>2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>7f00ff00</color> <!-- Semi-transparent green -->
+      </PolyStyle>
+    </Style>
+    <open>1</open>
+
+    <!-- Placemark with a Point -->
+    <Placemark>
+      <name>Random Point</name>
+      <description>Coordinates: 48.5, 24.1</description>
+      <Point>
+        <coordinates>24.1,48.5,1000</coordinates>
+      </Point>
+    </Placemark>
+
+    <!-- Placemark with a LineString -->
+    <Placemark>
+      <name>Random Path</name>
+      <styleUrl>#randomStyle</styleUrl>
+      <LineString>
+        <extrude>1</extrude>
+        <tessellate>1</tessellate>
+        <coordinates>
+          24.1,48.5,1000
+          24.2,48.6,1100
+          24.3,48.4,1200
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <!-- Placemark with a Polygon -->
+    <Placemark>
+      <name>Random Polygon</name>
+      <styleUrl>#randomStyle</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>relativeToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              24.15,48.45,1000
+              24.25,48.45,1000
+              24.25,48.55,1000
+              24.15,48.55,1000
+              24.15,48.45,1000
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+
+    <!-- Time-based Placemark -->
+    <Placemark>
+      <name>Time Example</name>
+      <TimeSpan>
+        <begin>2025-10-07T12:00:00Z</begin>
+        <end>2025-10-08T12:00:00Z</end>
+      </TimeSpan>
+      <Point>
+        <coordinates>24.2,48.6,1100</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>
